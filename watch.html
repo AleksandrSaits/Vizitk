@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>ZERO Video - Просмотр</title>
+    <link rel="stylesheet" href="css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <header>
+        <div class="logo" onclick="location.href='index.html'">ZERO<span>Video</span></div>
+        <input type="text" id="searchBar" placeholder="Поиск видео...">
+        <nav id="nav-auth"></nav>
+    </header>
+
+    <main class="watch-container">
+        <video id="mainPlayer" controls autoplay></video>
+        <div class="video-info">
+            <h1 id="videoTitle">Загрузка...</h1>
+            <div class="stats">
+                <span id="viewCount">0 просмотров</span> • 
+                <button id="likeBtn">❤️ <span id="likeCount">0</span></button>
+            </div>
+            <p id="videoDesc"></p>
+        </div>
+
+        <section class="comments-section">
+            <h3>Комментарии</h3>
+            <form id="commentForm" class="hidden">
+                <input type="text" id="commentInput" placeholder="Напишите комментарий...">
+                <button type="submit" class="btn-pixel">Отправить</button>
+            </form>
+            <div id="commentsList"></div>
+        </section>
+    </main>
+
+    <script type="module" src="js/app.js"></script>
+</body>
+</html>
