@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZERO Video - Загрузить видео</title>
+    <link rel="stylesheet" href="css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <header>
+        <div class="logo" onclick="location.href='index.html'">ZERO<span>Video</span></div>
+        <input type="text" id="searchBar" placeholder="Поиск видео...">
+        <nav id="nav-auth"></nav>
+    </header>
+
+    <main class="upload-page">
+        <div class="upload-container">
+            <div style="background: var(--card-bg); padding: 30px; border-radius: 16px; border: 1px solid var(--border); max-width: 700px; margin: 0 auto;">
+                <h2 style="margin-top:0;">📤 Загрузить видео</h2>
+                <p style="color:var(--text-muted); margin-bottom: 25px;">Поделитесь своим видео с сообществом</p>
+                
+                <form id="uploadForm" class="upload-form">
+                    <div class="form-group">
+                        <input type="text" id="v-title" placeholder="Название видео" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <textarea id="v-description" placeholder="Описание видео" rows="4"></textarea>
+                    </div>
+                    
+                    <div class="file-upload-wrapper">
+                        <label for="v-file" class="file-upload-label">
+                            <span class="file-icon">🎬</span>
+                            <span class="file-text">Выберите видео файл</span>
+                            <span class="file-required">*</span>
+                        </label>
+                        <input type="file" id="v-file" accept="video/mp4,video/webm,video/ogg" class="file-input" required>
+                        <div class="file-name" id="videoFileName">Файл не выбран</div>
+                    </div>
+                    
+                    <div class="file-upload-wrapper">
+                        <label for="v-thumbnail" class="file-upload-label">
+                            <span class="file-icon">🖼️</span>
+                            <span class="file-text">Выберите обложку (превью)</span>
+                            <span class="file-optional">необязательно</span>
+                        </label>
+                        <input type="file" id="v-thumbnail" accept="image/jpeg,image/png,image/webp" class="file-input">
+                        <div class="file-name" id="thumbnailFileName">Файл не выбран</div>
+                    </div>
+                    
+                    <div class="info-text">
+                        💡 Если не выбрать обложку, она сгенерируется автоматически из видео
+                    </div>
+                    
+                    <div id="uploadProgress" style="display:none; margin: 20px 0;">
+                        <div class="progress-bar-container">
+                            <div class="progress-bar" id="progressBarFill" style="width: 0%;"></div>
+                        </div>
+                        <div class="progress-text" id="progressText">0%</div>
+                    </div>
+                    
+                    <button type="submit" class="btn-pixel upload-btn">
+                        <span>⬆️</span> Опубликовать
+                    </button>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <div id="authModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" id="closeAuthModal">&times;</span>
+            <h2 id="authTitle" style="margin-top:0;">Вход</h2>
+            <form id="authForm" class="auth-form">
+                <input type="email" id="authEmail" placeholder="Ваш Email" required>
+                <input type="password" id="authPassword" placeholder="Пароль (минимум 6 символов)" required minlength="6">
+                <button type="submit" class="btn-pixel" id="authSubmitBtn">Войти</button>
+            </form>
+            <p class="switch-text">
+                <span id="authSwitchText">Нет аккаунта? Зарегистрироваться</span>
+            </p>
+        </div>
+    </div>
+
+    <script type="module" src="js/upload.js"></script>
+</body>
+                      </html>
