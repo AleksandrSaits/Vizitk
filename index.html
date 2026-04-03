@@ -4,35 +4,401 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ZERO Video</title>
-    <link rel="stylesheet" href="css/style.css">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            background: #050505;
+            color: white;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            padding-bottom: 20px;
+        }
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            background: rgba(0,0,0,0.9);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            border-bottom: 1px solid #222;
+        }
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #00ffcc;
+        }
+        .logo span {
+            color: white;
+        }
+        .btn {
+            background: #00ffcc;
+            color: black;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .btn-outline {
+            background: transparent;
+            border: 1px solid #333;
+            color: white;
+        }
+        .video-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+            padding: 20px;
+        }
+        .video-card {
+            background: #111;
+            border-radius: 12px;
+            overflow: hidden;
+            cursor: pointer;
+            border: 1px solid #222;
+        }
+        .video-card:hover {
+            border-color: #00ffcc;
+        }
+        .thumbnail {
+            width: 100%;
+            aspect-ratio: 16/9;
+            background: linear-gradient(135deg, #1a1a1a, #0a0a0a);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+        }
+        .info {
+            padding: 12px;
+        }
+        .title {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .views {
+            font-size: 0.8rem;
+            color: #888;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .modal.active {
+            display: flex;
+        }
+        .modal-content {
+            background: #111;
+            padding: 25px;
+            border-radius: 16px;
+            width: 90%;
+            max-width: 350px;
+            border: 1px solid #333;
+        }
+        .modal-content input {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            background: #1a1a1a;
+            border: 1px solid #333;
+            color: white;
+            border-radius: 8px;
+        }
+        .upload-form input, .upload-form textarea {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            background: #1a1a1a;
+            border: 1px solid #333;
+            color: white;
+            border-radius: 8px;
+        }
+        .upload-form textarea {
+            resize: vertical;
+        }
+        .hidden {
+            display: none;
+        }
+        .search-bar {
+            flex: 1;
+            max-width: 300px;
+            padding: 8px 16px;
+            border-radius: 20px;
+            border: 1px solid #333;
+            background: #1a1a1a;
+            color: white;
+        }
+        .nav-auth {
+            display: flex;
+            gap: 10px;
+        }
+        @media (max-width: 600px) {
+            .video-grid {
+                grid-template-columns: 1fr;
+                padding: 15px;
+            }
+            .search-bar {
+                max-width: 150px;
+                font-size: 12px;
+            }
+        }
+    </style>
 </head>
 <body>
     <header>
         <div class="logo" onclick="location.href='index.html'">ZERO<span>Video</span></div>
-        <input type="text" id="searchBar" placeholder="Поиск видео...">
-        <nav id="nav-auth"></nav>
+        <input type="text" id="searchBar" class="search-bar" placeholder="Поиск...">
+        <div class="nav-auth" id="navAuth">
+            <button class="btn" id="loginBtn">Войти</button>
+        </div>
     </header>
 
-    <main>
-        <div class="video-grid" id="videoGrid"></div>
-    </main>
-
-    <div id="authModal" class="modal">
-        <div class="modal-content">
-            <span class="close-btn" id="closeAuthModal">&times;</span>
-            <h2 id="authTitle" style="margin-top:0;">Вход</h2>
-            <form id="authForm" class="auth-form">
-                <input type="email" id="authEmail" placeholder="Ваш Email" required>
-                <input type="password" id="authPassword" placeholder="Пароль (минимум 6 символов)" required minlength="6">
-                <button type="submit" class="btn-pixel" id="authSubmitBtn">Войти</button>
+    <div id="uploadSection" class="hidden" style="padding: 20px;">
+        <div style="background: #111; padding: 20px; border-radius: 16px; border: 1px solid #222;">
+            <h3>📤 Загрузить видео</h3>
+            <form id="uploadForm" class="upload-form">
+                <input type="text" id="videoTitle" placeholder="Название видео" required>
+                <textarea id="videoDesc" placeholder="Описание" rows="3"></textarea>
+                <input type="file" id="videoFile" accept="video/mp4,video/webm" required>
+                <input type="file" id="thumbnailFile" accept="image/jpeg,image/png">
+                <small style="color:#888;">Если не выбрать обложку, сгенерируется автоматически</small>
+                <button type="submit" class="btn" style="margin-top: 15px; width: 100%;">Опубликовать</button>
             </form>
-            <p class="switch-text">
-                <span id="authSwitchText">Нет аккаунта? Зарегистрироваться</span>
-            </p>
+            <div id="uploadProgress" style="display:none; margin-top: 15px;">
+                <progress value="0" max="100" style="width:100%"></progress>
+                <p id="progressText" style="text-align:center; margin-top:5px;">0%</p>
+            </div>
         </div>
     </div>
 
-    <script type="module" src="js/app.js"></script>
+    <div class="video-grid" id="videoGrid">
+        <p style="text-align:center; grid-column:1/-1;">Загрузка видео...</p>
+    </div>
+
+    <div id="authModal" class="modal">
+        <div class="modal-content">
+            <h3 id="authTitle">Вход</h3>
+            <form id="authForm">
+                <input type="email" id="authEmail" placeholder="Email" required>
+                <input type="password" id="authPassword" placeholder="Пароль (мин 6 символов)" required>
+                <button type="submit" class="btn" style="width:100%">Войти</button>
+            </form>
+            <p style="text-align:center; margin-top:15px; color:#888;">
+                <span id="authSwitch" style="color:#00ffcc; cursor:pointer;">Нет аккаунта? Регистрация</span>
+            </p>
+            <span id="closeModal" style="position:absolute; top:15px; right:20px; cursor:pointer;">&times;</span>
+        </div>
+    </div>
+
+    <script>
+        // Supabase настройки
+        const SUPABASE_URL = 'https://wjifzzzjjlhpaicufcsh.supabase.co';
+        const SUPABASE_ANON_KEY = 'sb_publishable_47pfkmOHbf2DKsgtOm02dQ_KX7STct-';
+        
+        let currentUser = null;
+        let isLoginMode = true;
+        
+        // Функции
+        async function fetchVideos() {
+            try {
+                const res = await fetch(`${SUPABASE_URL}/rest/v1/videos?select=*&order=created_at.desc`, {
+                    headers: {
+                        'apikey': SUPABASE_ANON_KEY,
+                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+                    }
+                });
+                const videos = await res.json();
+                renderVideos(videos);
+            } catch(e) {
+                console.error('Ошибка загрузки видео:', e);
+                document.getElementById('videoGrid').innerHTML = '<p style="text-align:center;">Ошибка загрузки. Проверьте подключение.</p>';
+            }
+        }
+        
+        function renderVideos(videos) {
+            const grid = document.getElementById('videoGrid');
+            if (!videos || videos.length === 0) {
+                grid.innerHTML = '<p style="text-align:center; grid-column:1/-1;">😢 Нет видео. Будьте первым!</p>';
+                return;
+            }
+            grid.innerHTML = videos.map(v => `
+                <div class="video-card" onclick="location.href='watch.html?id=${v.id}'">
+                    <div class="thumbnail">
+                        ${v.thumbnail_url ? `<img src="${v.thumbnail_url}" style="width:100%; height:100%; object-fit:cover;">` : '🎬'}
+                    </div>
+                    <div class="info">
+                        <div class="title">${escapeHtml(v.title)}</div>
+                        <div class="views">${formatViews(v.views || 0)} просмотров</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        function formatViews(views) {
+            if (views >= 1000000) return (views/1000000).toFixed(1) + 'M';
+            if (views >= 1000) return (views/1000).toFixed(1) + 'K';
+            return views;
+        }
+        
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+        async function checkUser() {
+            const session = localStorage.getItem('supabase_session');
+            if (session) {
+                try {
+                    const user = JSON.parse(session);
+                    currentUser = user;
+                    document.getElementById('navAuth').innerHTML = `
+                        <button class="btn btn-outline" id="uploadBtn">📹 Создать</button>
+                        <button class="btn btn-outline" id="profileBtn">👤</button>
+                        <button class="btn btn-outline" id="logoutBtn">Выйти</button>
+                    `;
+                    document.getElementById('uploadBtn').onclick = () => toggleUpload(true);
+                    document.getElementById('profileBtn').onclick = () => location.href = 'profile.html';
+                    document.getElementById('logoutBtn').onclick = logout;
+                } catch(e) {}
+            } else {
+                document.getElementById('navAuth').innerHTML = '<button class="btn" id="loginBtn">Войти</button>';
+                document.getElementById('loginBtn').onclick = () => document.getElementById('authModal').classList.add('active');
+            }
+        }
+        
+        function toggleUpload(show) {
+            const section = document.getElementById('uploadSection');
+            if (show) {
+                section.classList.remove('hidden');
+            } else {
+                section.classList.add('hidden');
+            }
+        }
+        
+        async function logout() {
+            localStorage.removeItem('supabase_session');
+            currentUser = null;
+            location.reload();
+        }
+        
+        // Auth
+        async function signIn(email, password) {
+            const res = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
+                method: 'POST',
+                headers: {
+                    'apikey': SUPABASE_ANON_KEY,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ email, password })
+            });
+            const data = await res.json();
+            if (data.access_token) {
+                localStorage.setItem('supabase_session', JSON.stringify(data.user));
+                currentUser = data.user;
+                location.reload();
+            } else {
+                alert('Ошибка: ' + (data.msg || data.message || 'Неверные данные'));
+            }
+        }
+        
+        async function signUp(email, password) {
+            const res = await fetch(`${SUPABASE_URL}/auth/v1/signup`, {
+                method: 'POST',
+                headers: {
+                    'apikey': SUPABASE_ANON_KEY,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ email, password })
+            });
+            const data = await res.json();
+            if (data.user) {
+                alert('Регистрация успешна! Теперь войдите.');
+                isLoginMode = true;
+                document.getElementById('authTitle').innerText = 'Вход';
+                document.getElementById('authSubmitBtn').innerText = 'Войти';
+                document.getElementById('authSwitch').innerText = 'Нет аккаунта? Регистрация';
+            } else {
+                alert('Ошибка: ' + (data.msg || data.message));
+            }
+        }
+        
+        // Загрузка видео
+        async function uploadVideo(title, description, videoFile, thumbnailFile) {
+            // TODO: реализация загрузки в Storage
+            alert('Функция загрузки в разработке. Сначала настройте Storage в Supabase');
+        }
+        
+        // Инициализация
+        fetchVideos();
+        checkUser();
+        
+        // Модалка
+        const modal = document.getElementById('authModal');
+        document.getElementById('closeModal').onclick = () => modal.classList.remove('active');
+        window.onclick = (e) => { if (e.target === modal) modal.classList.remove('active'); };
+        
+        const authForm = document.getElementById('authForm');
+        const authSwitch = document.getElementById('authSwitch');
+        const authTitle = document.getElementById('authTitle');
+        const submitBtn = authForm.querySelector('button');
+        
+        authSwitch.onclick = () => {
+            isLoginMode = !isLoginMode;
+            authTitle.innerText = isLoginMode ? 'Вход' : 'Регистрация';
+            submitBtn.innerText = isLoginMode ? 'Войти' : 'Создать аккаунт';
+            authSwitch.innerText = isLoginMode ? 'Нет аккаунта? Регистрация' : 'Уже есть аккаунт? Войти';
+        };
+        
+        authForm.onsubmit = async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('authEmail').value;
+            const password = document.getElementById('authPassword').value;
+            if (isLoginMode) {
+                await signIn(email, password);
+            } else {
+                await signUp(email, password);
+            }
+        };
+        
+        const uploadForm = document.getElementById('uploadForm');
+        if (uploadForm) {
+            uploadForm.onsubmit = async (e) => {
+                e.preventDefault();
+                const title = document.getElementById('videoTitle').value;
+                const desc = document.getElementById('videoDesc').value;
+                const videoFile = document.getElementById('videoFile').files[0];
+                const thumbFile = document.getElementById('thumbnailFile').files[0];
+                if (!title || !videoFile) {
+                    alert('Заполните название и выберите видео');
+                    return;
+                }
+                await uploadVideo(title, desc, videoFile, thumbFile);
+            };
+        }
+        
+        // Поиск
+        document.getElementById('searchBar').oninput = (e) => {
+            const query = e.target.value.toLowerCase();
+            const cards = document.querySelectorAll('.video-card');
+            cards.forEach(card => {
+                const title = card.querySelector('.title')?.innerText.toLowerCase() || '';
+                card.style.display = title.includes(query) ? 'block' : 'none';
+            });
+        };
+    </script>
 </body>
 </html>
